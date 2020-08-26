@@ -24,8 +24,8 @@ cbuffer cbTransforms : register(b0)
     bool SSAOEnabled;
     float SSAOBias;
     float SSAOIntensity;
-    float TimeStamp;
-    float padding0;
+    float TimeStamp; // by seconds
+    bool IsPerspective;
     float OITPower;
     float OITSlope;
     int OITWeightMode;
@@ -97,12 +97,14 @@ cbuffer cbMesh : register(b1)
     bool bAutoTengent;
     bool bHasDisplacementMap = false;
     bool bRenderPBR = false;  
-    float padding12;
+    bool bRenderFlat = false; //Enable flat normal rendering
     float sMaterialShininess = 1.0f; //Ps := surface material's shininess
 
     float4 displacementMapScaleMask = float4(0, 0, 0, 1);
     float4 uvTransformR1;
     float4 uvTransformR2;
+    float vertColorBlending;
+    float3 padding4;
 };
 #endif
 
@@ -147,7 +149,11 @@ cbuffer cbPointLineModel : register(b4)
     bool enableDistanceFading;
     float fadeNearDistance;
     float fadeFarDistance;
-    float padding2;
+    bool bHasTexture = false;
+    float pTextureScale = 1;
+    float pAlphaThreshold = 0;
+    bool pEnableBlending = 0;
+    float pBlendingFactor = 0;
 };
 #endif
 #if defined(VOLUME) // model for line, point and billboard
@@ -155,16 +161,16 @@ cbuffer cbPointLineModel : register(b4)
 cbuffer cbVolumeModel : register(b4)
 {
     float4x4 mWorld;
+    float4x4 mWorldInv;
     float4 pColor;
     float stepSize;
     uint iterationOffset;
-    float padding1;
+    bool enablePlaneAlignment;
     uint maxIterations;
     bool bHasGradientMapX;
     float isoValue;
     float baseSampleDist = .5f;
     float actualSampleDist = .5f;
-    float4 scaleFactor;
 };
 #endif
 #if defined(PARTICLE) // model for line, point and billboard
@@ -308,6 +314,7 @@ TextureCube<float3> texCubeMap : register(t20); // Radiance Map
 Texture2D<float> texShadowMap : register(t30);
 
 Texture2D texSSAOMap : register(t31);
+
 #if defined(SSAO)
 Texture2D<float3> texSSAONoise : register(t32);
 Texture2D<float> texSSAODepth : register(t33);

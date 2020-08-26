@@ -1,9 +1,50 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
-## [Next Version]
+## [2.12.0] - 2020-05-25
+### Added
+1. Support Vertex Color blending for Phong/PBR/Diffuse materials with new `VertexColorBlendingFactor` property. (WPF.SharpDX/UWP/Core)
+
+### Fixed
+1. Fix billboardText not being call to initialize. (WPF.SharpDX/UWP/Core)
+2. Empty BillboardSingleText3D Causes Crash. (WPF.SharpDX/UWP/Core)
+3. Argument exception when using View.RenderTargetBitmap. (WPF.SharpDX/UWP/Core)
+
+## [2.11.0] - 2020-02-08
+### Added
+1. Add IsTopBottomViewOrientedToFrontBack property to view cube #1263. (WPF)
+2. Support color linear blending mode for Point Rendering. (WPF.SharpDX/UWP/Core)
+
+### Improvement and Changes
+1. Improve volume rendering. Properly renders other mesh along with volume. (WPF.SharpDX/UWP/Core)
+2. Properly render volume when camera is inside the volume cube. (WPF.SharpDX/UWP/Core)
+
+### Fixed
+1. Fix dependency property on HitTestThickness on both line/point model3D. Ref #1257 (WPF.SharpDX/UWP/Core)
+2. Fix MeshGeometryHelper.FindSharpEdges() not working properly. (MeshBuilder)
+3. Fix CreateView overloading wrong function. (WPF.SharpDX/UWP/Core)
+4. Fix GeometryBoundManager.GeometryValid is not updated when calling Geometry3D.UpdateVertices. (WPF.SharpDX/UWP/Core)
+5. Fix Assimp dll reference issue.  (WPF.SharpDX/UWP/Core)
+
+## [2.10.0] - 2019-11-10
+### Added
+1. Added HelixToolkit.Core.Wpf nuget package to support .net core 3.0 WPF.
+2. Added HelixToolkit.SharpDX.Core.Wpf nuget package to support .net core 3.0 WPF.
+3. Supports hit test on bone skinned mesh. (WPF.SharpDX/UWP/Core) (`Note: Implementation copies skinned vertices from GPU, it does not do bounding box check and may introduce potential performance hit. Please use cautiously. Make sure to disable hit test on non-hit testable models.`)
+
+### Improvement and Changes
+1. Upgrade to use Visual Studio 2019 (Required by .net core 3.0).
+2. Upgrade minimum Windows SDK version to 10.0.17763 on shader builder project. (Required by Visual Studio 2019).
+
+### Fixed
+1. Fixed single point hit test in SharpDX version #1225. (WPF.SharpDX/UWP/Core)
+2. Fixed nuget dependencies not getting installed. (WPF.SharpDX/UWP/Core)
+3. Fixed wrong distance comparison on mesh hit test. (WPF.SharpDX/UWP/Core)
+
+## [2.9.0] - 2019-08-24
 ### Added
 1. Assimp Metadata #1195 (WPF.SharpDX/UWP/Core)
+2. Added Helixtoolkit.Wpf.Input as nuget package.
 
 ### Improvement and Changes
 
@@ -11,6 +52,7 @@ All notable changes to this project will be documented in this file.
 1. FindHits not working with large scale transfroms #1193 (WPF.SharpDX/UWP/Core)
 2. Fix line arrow head transform not correct #1205. (WPF.SharpDX/UWP/Core)
 3. ItemsModel3D doesn't implement ItemTemplateSelector #1203 (UWP)
+4. 2DControl crash with SharpDX #1125 (WPF.SharpDX/UWP/Core)
 
 ## [2.8.0] - 2019-06-22
 

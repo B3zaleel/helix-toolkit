@@ -25,7 +25,7 @@
         public string Name { get; set; }
         public MainViewModel ViewModel { get { return this; } }
         public MeshGeometry3D Model { get; private set; }
-
+        public MeshGeometry3D BoxModel { get; private set; }
         public MeshGeometry3D FloorModel { private set; get; }
         public PhongMaterial FloorMaterial { private set; get; }
         public Transform3D ModelTransform { get; private set; }
@@ -44,14 +44,17 @@
         public PhongMaterial LightModelMaterial { get; set; }
 
         public Color Light1Color { get; set; }
+        private bool enablePlane1 = true;
+        public bool EnablePlane1 { set { SetValue(ref enablePlane1, value); } get => enablePlane1; }
 
-        public bool EnablePlane1 { set; get; } = true;
-        public Plane Plane1 { set; get; } = new Plane(new Vector3(0, -1, 0), -8);
-        private float plane1Factor = 0.05f;
+        private Plane plane1 = new Plane(new Vector3(0, -1, 0), -8);
+        public Plane Plane1 { set { SetValue(ref plane1, value); } get => plane1; } 
 
-        public bool EnablePlane2 { set; get; } = true;
-        public Plane Plane2 { set; get; } = new Plane(new Vector3(-1, 0, 0), -8);
-        private float plane2Factor = 0.05f;
+        private bool enablePlane2 = true;
+        public bool EnablePlane2 { set { SetValue(ref enablePlane2, value); } get => enablePlane2; }
+        private Plane plane2 = new Plane(new Vector3(-1, 0, 0), -8);
+        public Plane Plane2 { set { SetValue(ref plane2, value); } get => plane2; }
+
         private int cuttingOperationIndex;
         public int CuttingOperationIndex
         {
@@ -64,8 +67,8 @@
             }
             get { return cuttingOperationIndex; }
         }
-
-        public CuttingOperation CuttingOperation { set; get; }
+        private CuttingOperation cuttingOperation = CuttingOperation.Intersect;
+        public CuttingOperation CuttingOperation { set { SetValue(ref cuttingOperation, value); } get => cuttingOperation; }
 
         public MainViewModel()
         {
@@ -118,6 +121,10 @@
 
             Plane1Transform = new TranslateTransform3D(new Vector3D(0, 15, 0));
             Plane2Transform = new TranslateTransform3D(new Vector3D(15, 0, 0));
+
+            var meshBuilder = new MeshBuilder();
+            meshBuilder.AddBox(new Vector3(5f), 40, 1, 2);
+            BoxModel = meshBuilder.ToMeshGeometry3D();
         }
 
         public List<Object3D> Load3ds(string path)

@@ -24,7 +24,7 @@ namespace HelixToolkit.UWP
         /// <summary>
         /// Physics based rendering material
         /// </summary>
-        public sealed class PBRMaterialVariable : MaterialVariable
+        public class PBRMaterialVariable : MaterialVariable
         {
             private const int NUMTEXTURES = 7;
             private const int NUMSAMPLERS = 4;
@@ -140,6 +140,7 @@ namespace HelixToolkit.UWP
 
                 WriteValue(PhongPBRMaterialStruct.RenderPBR, true); // Make sure to set this flag
                 AddPropertyBinding(nameof(PBRMaterialCore.EnableFlatShading), () => { WriteValue(PhongPBRMaterialStruct.RenderFlat, material.EnableFlatShading); });
+                AddPropertyBinding(nameof(PBRMaterialCore.VertexColorBlendingFactor), () => { WriteValue(PhongPBRMaterialStruct.VertColorBlending, material.VertexColorBlendingFactor); });
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]

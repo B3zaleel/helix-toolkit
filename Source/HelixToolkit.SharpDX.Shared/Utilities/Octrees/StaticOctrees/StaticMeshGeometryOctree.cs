@@ -121,6 +121,7 @@ namespace HelixToolkit.UWP
                     }
                     var result = new HitTestResult();
                     result.Distance = double.MaxValue;
+                    float minDistance = float.MaxValue;
                     for (int i = octant.Start; i < octant.End; ++i)
                     {
                         var idx = Objects[i].Key * 3;
@@ -130,12 +131,26 @@ namespace HelixToolkit.UWP
                         var v0 = Positions[t1];
                         var v1 = Positions[t2];
                         var v2 = Positions[t3];
-                        float d;
 
-                        if (Collision.RayIntersectsTriangle(ref rayModel, ref v0, ref v1, ref v2, out d))
+                        var scaling = 1f;
+                        var rayScaled = rayModel;
+                        if (MeshGeometry3D.EnableSmallTriangleHitTestScaling)
                         {
-                            if (d >= 0 && d < result.Distance) // If d is NaN, the condition is false.
+                            if ((v0 - v1).LengthSquared() < MeshGeometry3D.SmallTriangleEdgeLengthSquare
+                                || (v1 - v2).LengthSquared() < MeshGeometry3D.SmallTriangleEdgeLengthSquare
+                                || (v2 - v0).LengthSquared() < MeshGeometry3D.SmallTriangleEdgeLengthSquare)
                             {
+                                scaling = MeshGeometry3D.SmallTriangleHitTestScaling;
+                                rayScaled = new Ray(rayModel.Position * scaling, rayModel.Direction);
+                            }
+                        }
+
+                        if (Collision.RayIntersectsTriangle(ref rayScaled, ref v0, ref v1, ref v2, out float d))
+                        {
+                            d /= scaling;
+                            if (d >= 0 && d < minDistance) // If d is NaN, the condition is false.
+                            {
+                                minDistance = d;
                                 result.IsValid = true;
                                 result.ModelHit = model;
                                 // transform hit-info to world space now:
@@ -143,9 +158,9 @@ namespace HelixToolkit.UWP
                                 result.PointHit = pointWorld;
                                 result.Distance = (rayWS.Position - pointWorld).Length();
 
-                                var p0 = Vector3.TransformCoordinate(v0, modelMatrix);
-                                var p1 = Vector3.TransformCoordinate(v1, modelMatrix);
-                                var p2 = Vector3.TransformCoordinate(v2, modelMatrix);
+                                var p0 = Vector3.TransformCoordinate(Positions[t1], modelMatrix);
+                                var p1 = Vector3.TransformCoordinate(Positions[t2], modelMatrix);
+                                var p2 = Vector3.TransformCoordinate(Positions[t3], modelMatrix);
                                 var n = Vector3.Cross(p1 - p0, p2 - p0);
                                 n.Normalize();
                                 // transform hit-info to world space now:

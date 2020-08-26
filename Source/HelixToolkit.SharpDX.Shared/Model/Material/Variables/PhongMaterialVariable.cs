@@ -24,7 +24,7 @@ namespace HelixToolkit.UWP
         /// <summary>
         /// Default PhongMaterial Variables
         /// </summary>
-        public sealed class PhongMaterialVariables : MaterialVariable
+        public class PhongMaterialVariables : MaterialVariable
         {
             private const int NUMTEXTURES = 6;
 
@@ -217,6 +217,7 @@ namespace HelixToolkit.UWP
                 AddPropertyBinding(nameof(PhongMaterialCore.RenderDisplacementMap), () => { WriteValue(PhongPBRMaterialStruct.HasDisplacementMapStr, material.RenderDisplacementMap && textureResources[DisplaceIdx] != null ? 1 : 0); });
                 AddPropertyBinding(nameof(PhongMaterialCore.RenderEmissiveMap), () => { WriteValue(PhongPBRMaterialStruct.HasEmissiveMapStr, material.RenderEmissiveMap && textureResources[EmissiveIdx] != null ? 1 : 0); });
                 AddPropertyBinding(nameof(PhongMaterialCore.EnableFlatShading), () => { WriteValue(PhongPBRMaterialStruct.RenderFlat, material.EnableFlatShading); });
+                AddPropertyBinding(nameof(PhongMaterialCore.VertexColorBlendingFactor), () => { WriteValue(PhongPBRMaterialStruct.VertColorBlending, material.VertexColorBlendingFactor); });
                 AddPropertyBinding(nameof(PhongMaterialCore.DiffuseMap), () => 
                 {
                     CreateTextureView(material.DiffuseMap, DiffuseIdx);

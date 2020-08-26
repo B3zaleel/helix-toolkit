@@ -25,7 +25,7 @@ namespace HelixToolkit.UWP
         /// <summary>
         /// 
         /// </summary>
-        public sealed class DiffuseMaterialVariables : MaterialVariable
+        public class DiffuseMaterialVariables : MaterialVariable
         {
             private const int NUMTEXTURES = 1;
             private const int NUMSAMPLERS = 1;
@@ -141,6 +141,7 @@ namespace HelixToolkit.UWP
                 AddPropertyBinding(nameof(DiffuseMaterialCore.EnableUnLit), () => 
                 { WriteValue(PhongPBRMaterialStruct.HasNormalMapStr, material.EnableUnLit); });
                 AddPropertyBinding(nameof(DiffuseMaterialCore.EnableFlatShading), () => { WriteValue(PhongPBRMaterialStruct.RenderFlat, material.EnableFlatShading); });
+                AddPropertyBinding(nameof(DiffuseMaterialCore.VertexColorBlendingFactor), () => { WriteValue(PhongPBRMaterialStruct.VertColorBlending, material.VertexColorBlendingFactor); });
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]

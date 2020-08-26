@@ -54,7 +54,7 @@ namespace HelixToolkit.Wpf.SharpDX
     [TemplatePart(Name = "PART_TitleView", Type = typeof(StackPanel2D))]
     [TemplatePart(Name = "PART_Items", Type = typeof(ItemsControl))]
     [Localizability(LocalizationCategory.NeverLocalize)]
-    public partial class Viewport3DX : Control, IViewport3DX
+    public partial class Viewport3DX : Control, IViewport3DX, IDisposable
     {
         /// <summary>
         /// The adorner layer part name.
@@ -624,6 +624,11 @@ namespace HelixToolkit.Wpf.SharpDX
             Disposer.RemoveAndDispose(ref renderHostInternal);
             hostPresenter = this.GetTemplateChild("PART_Canvas") as ContentPresenter;
 
+            if (this.hostPresenter?.Content is IRenderCanvas renderCanvas)
+            {
+                renderCanvas.ExceptionOccurred -= this.HandleRenderException;
+            }
+
             if (EnableSwapChainRendering)
             {
                 double dpiXScale = 1;
@@ -634,11 +639,11 @@ namespace HelixToolkit.Wpf.SharpDX
                     dpiXScale = 1.0 / source.CompositionTarget.TransformToDevice.M11;
                     dpiYScale = 1.0 / source.CompositionTarget.TransformToDevice.M22;
                 }
-                hostPresenter.Content = new DPFSurfaceSwapChain(EnableDeferredRendering) { DPIXScale = dpiXScale, DPIYScale = dpiYScale };
+                hostPresenter.Content = new DPFSurfaceSwapChain(EnableDeferredRendering, BelongsToParentWindow) { DPIXScale = dpiXScale, DPIYScale = dpiYScale };
             }
             else
             {
-                hostPresenter.Content = new DPFCanvas(EnableDeferredRendering);
+                hostPresenter.Content = new DPFCanvas(EnableDeferredRendering, BelongsToParentWindow);
             }
 
             if (this.renderHostInternal != null)
@@ -647,7 +652,9 @@ namespace HelixToolkit.Wpf.SharpDX
                 this.renderHostInternal.ExceptionOccurred -= this.HandleRenderException;
             }
 
-            renderHostInternal = (hostPresenter.Content as IRenderCanvas).RenderHost;
+            renderCanvas = (IRenderCanvas)this.hostPresenter.Content;
+            this.renderHostInternal = renderCanvas.RenderHost;
+            renderCanvas.ExceptionOccurred += this.HandleRenderException;
             if (this.renderHostInternal != null)
             {
                 this.renderHostInternal.Rendered += this.RaiseRenderHostRendered;
@@ -1331,10 +1338,14 @@ namespace HelixToolkit.Wpf.SharpDX
 
                 this.hasBeenLoadedBefore = true;
             }
-            parentWindow = FindVisualAncestor<Window>(this);
-            if (parentWindow != null)
+
+            if (BelongsToParentWindow)
             {
-                parentWindow.Closed += ParentWindow_Closed;
+                parentWindow = FindVisualAncestor<Window>(this);
+                if (parentWindow != null)
+                {
+                    parentWindow.Closed += ParentWindow_Closed;
+                }
             }
 
             if (this.ZoomExtentsWhenLoaded)
@@ -1374,7 +1385,7 @@ namespace HelixToolkit.Wpf.SharpDX
         {
             FormMouseMove -= Viewport3DX_FormMouseMove;
             FormMouseWheel -= Viewport3DX_FormMouseWheel;
-            if (parentWindow != null)
+            if (BelongsToParentWindow && parentWindow != null)
             {
                 parentWindow.Closed -= ParentWindow_Closed;
             }
@@ -1526,15 +1537,24 @@ namespace HelixToolkit.Wpf.SharpDX
         private void SetDefaultGestures()
         {
             this.InputBindings.Clear();
-            // TODO:
-            // Runtime error: 'None+U' key and modifier combination is not supported for KeyGesture.
-            // But this works when defining in xaml...
-            //this.InputBindings.Add(new KeyBinding(ViewportCommands.TopView, Key.U, ModifierKeys.None));
-            //this.InputBindings.Add(new KeyBinding(ViewportCommands.BottomView, Key.D, ModifierKeys.None));
-            //this.InputBindings.Add(new KeyBinding(ViewportCommands.FrontView, Key.F, ModifierKeys.None));
-            //this.InputBindings.Add(new KeyBinding(ViewportCommands.BackView, Key.B, ModifierKeys.None));
-            //this.InputBindings.Add(new KeyBinding(ViewportCommands.LeftView, Key.L, ModifierKeys.None));
-            //this.InputBindings.Add(new KeyBinding(ViewportCommands.RightView, Key.R, ModifierKeys.None));
+
+            // Set Default Key Gestures:
+            // this.InputBindings.Add(new KeyBinding(ViewportCommands.TopView, Key.U, ModifierKeys.None));
+            // will not work, because the KeyBinding constructor creates a KeyGesture implictly.
+            // The problem: Gestures with printable keys and the ModifierKeys "None" or "Shift" are not supported.
+            // "None + U" or "Shift + U" can not be used as gesture. So we have to create a KeyBinding
+            // without a gesture. For this we have to use the KeyBinding default constructor.
+            var kb = new []
+            {
+                new KeyBinding() {Command = ViewportCommands.TopView, Key = Key.U},
+                new KeyBinding() {Command = ViewportCommands.BottomView, Key=Key.D},
+                new KeyBinding() {Command = ViewportCommands.FrontView, Key=Key.F},
+                new KeyBinding() {Command = ViewportCommands.BackView, Key=Key.B},
+                new KeyBinding() {Command = ViewportCommands.LeftView, Key=Key.L},
+                new KeyBinding() {Command = ViewportCommands.RightView, Key=Key.R},
+            };
+            this.InputBindings.AddRange(kb);
+
             this.InputBindings.Add(new KeyBinding(ViewportCommands.ZoomExtents, Key.E, ModifierKeys.Control));
             this.InputBindings.Add(
                 new MouseBinding(
@@ -1815,5 +1835,49 @@ namespace HelixToolkit.Wpf.SharpDX
 
             return null;
         }
+
+        #region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    if (!BelongsToParentWindow)
+                    {
+                        if (hostPresenter.Content is IDisposable d)
+                        {
+                            hostPresenter.Content = null;
+                            d.Dispose();
+                        }
+                    }
+
+                    // TODO: dispose managed state (managed objects).
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+                // TODO: set large fields to null.
+
+                disposedValue = true;
+            }
+        }
+
+        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
+        // ~Viewport3DX() {
+        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+        //   Dispose(false);
+        // }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+            // TODO: uncomment the following line if the finalizer is overridden above.
+            // GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 }

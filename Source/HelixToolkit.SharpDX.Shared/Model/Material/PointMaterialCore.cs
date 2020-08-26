@@ -17,7 +17,7 @@ namespace HelixToolkit.UWP
     namespace Model
     {
         using Core;
-        public sealed class PointMaterialCore : MaterialCore, IPointRenderParams
+        public class PointMaterialCore : MaterialCore, IPointRenderParams
         {
             private float width = 0.5f;
             /// <summary>
@@ -133,6 +133,35 @@ namespace HelixToolkit.UWP
             {
                 set { Set(ref fixedSize, value); }
                 get { return fixedSize; }
+            }
+
+            private bool enableColorBlending = false;
+            /// <summary>
+            /// Gets or sets a value indicating whether [enable blending].
+            /// <para>Once enabled, final color 
+            /// = <see cref="BlendingFactor"/> * <see cref="PointColor"/> + (1 - <see cref="BlendingFactor"/>) * Vertex Color.</para>
+            /// </summary>
+            /// <value>
+            ///   <c>true</c> if [enable blending]; otherwise, <c>false</c>.
+            /// </value>
+            public bool EnableColorBlending
+            {
+                set { Set(ref enableColorBlending, value); }
+                get { return enableColorBlending; }
+            }
+
+            private float blendingFactor = 0;
+            /// <summary>
+            /// Gets or sets the blending factor.
+            /// <para>Used when <see cref="EnableColorBlending"/> = true.</para>
+            /// </summary>
+            /// <value>
+            /// The blending factor.
+            /// </value>
+            public float BlendingFactor
+            {
+                set { Set(ref blendingFactor, value); }
+                get { return blendingFactor; }
             }
 
             public override MaterialVariable CreateMaterialVariables(IEffectsManager manager, IRenderTechnique technique)
